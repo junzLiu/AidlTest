@@ -2,6 +2,7 @@
 package com.mark.aidl;
 
 // Declare any non-default types here with import statements
+import com.mark.aidl.IClientCallback;
 
 interface IMyAidlInterface {
     /**
@@ -17,4 +18,6 @@ interface IMyAidlInterface {
      int getPid();
 
      int getRandomNum();
+
+     void randomNum(IClientCallback callback);
 }

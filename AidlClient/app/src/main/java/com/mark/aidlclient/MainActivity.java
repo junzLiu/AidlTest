@@ -11,7 +11,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.mark.aidl.IClientCallback;
 import com.mark.aidl.IMyAidlInterface;
+import com.mark.aidl.entry.CodeEntry;
 
 public class MainActivity extends AppCompatActivity {
     TextView codeTv, errTv;
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 linkBtn.setEnabled(false);
                 getCodeBtn.setEnabled(true);
                 errTv.setVisibility(View.INVISIBLE);
+                initRandom();
             }
 
             @Override
@@ -75,6 +78,26 @@ public class MainActivity extends AppCompatActivity {
                 getCodeBtn.setEnabled(false);
             }
         };
+    }
+
+    void initRandom() {
+        try {
+            myAidlInterface.randomNum( new IClientCallback.Stub() {
+                @Override
+                public void callback(final CodeEntry entry) throws RemoteException {
+                    if (entry == null)
+                        return;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            codeTv.setText(entry.tag + ":" + entry.code);
+                        }
+                    });
+                }
+            });
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

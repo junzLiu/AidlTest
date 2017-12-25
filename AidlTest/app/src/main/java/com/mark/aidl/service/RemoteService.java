@@ -7,7 +7,9 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 
+import com.mark.aidl.IClientCallback;
 import com.mark.aidl.IMyAidlInterface;
+import com.mark.aidl.entry.CodeEntry;
 
 import java.util.Calendar;
 import java.util.Random;
@@ -17,11 +19,19 @@ import java.util.Random;
  */
 
 public class RemoteService extends Service {
+    private boolean isDestroy = true;
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        isDestroy = false;
         return mBinder;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        isDestroy = true;
     }
 
     IMyAidlInterface.Stub mBinder = new IMyAidlInterface.Stub() {
@@ -39,5 +49,28 @@ public class RemoteService extends Service {
         public int getRandomNum() throws RemoteException {
             return new Random(Calendar.getInstance().getTimeInMillis()).nextInt();
         }
+
+        @Override
+        public void randomNum(final IClientCallback callback) throws RemoteException {
+         final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (!isDestroy) {
+                        try {
+                            if (callback != null)
+                                callback.callback(new CodeEntry("Mark", getRandomNum()));
+                               Thread.sleep(2000);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+         thread.start();
+
+        }
     };
+
 }
